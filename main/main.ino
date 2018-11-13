@@ -161,6 +161,8 @@ void setup() {
   Wire.begin();        // join i2c bus
   Serial.begin(9600);  // start serial for output
   pinMode(DHT11, OUTPUT);  // Broche du capteur en entrée température/humidité
+  pinMode(8, OUTPUT);  // Broche pour sortie 5V supplémentaire
+  digitalWrite(8, HIGH); // mise au niveau haut broche sortie 5V
 
   //initialisation des variables
   parametreA0.ia0 = 0;
@@ -181,27 +183,27 @@ void setup() {
   parametreA0.ca0[1] = Wire.read();             //lecture trame MSB
   parametreA0.ca0[0] = Wire.read();             //lecture trame LSB
   fA0 = (float)parametreA0.ia0 / 8.0 ;          //division par 2^3
-//  Serial.print(fA0, DEC);
-//  Serial.print("\n");
+  //  Serial.print(fA0, DEC);
+  //  Serial.print("\n");
 
   parametreB1.cb1[1] = Wire.read();             //lecture trame MSB
   parametreB1.cb1[0] = Wire.read();             //lecture trame LSB
   fB1 = (float)parametreB1.ib1 / 8192.0 ;       //division par 2^13
-//  Serial.print(fB1, DEC);
-//  Serial.print("\n");
+  //  Serial.print(fB1, DEC);
+  //  Serial.print("\n");
 
   parametreB2.cb2[1] = Wire.read();             //lecture trame MSB
   parametreB2.cb2[0] = Wire.read();             //lecture trame LSB
   fB2 = (float)parametreB2.ib2 / 16384.0 ;      //division par 2^14
-//  Serial.print(fB2, DEC);
-//  Serial.print("\n");
+  //  Serial.print(fB2, DEC);
+  //  Serial.print("\n");
 
   parametreC12.cc12[1] = Wire.read();           //lecture trame MSB
   parametreC12.cc12[0] = Wire.read();           //lecture trame LSB
   parametreC12.ic12 = (parametreC12.ic12) >> 2; // décalage de 2bits vers la droite
   fC12 = (float)parametreC12.ic12 / 4194304.0;  //division par 2^(13+9)
-//  Serial.print(fC12, DEC);
-//  Serial.print("\n");
+  //  Serial.print(fC12, DEC);
+  //  Serial.print("\n");
 }
 //***********************//
 
@@ -212,38 +214,59 @@ void loop() {
   unsigned long start_time = 18;
   unsigned long time_out = 1000;
   float lumiere;
+  uint32_t imsgT = 0xABCDABCD;  //integer message avant trame température
+  uint32_t imsgP = 0xCAFECAFE;  //integer message avant trame pression
+  uint32_t imsgH = 0xBDEABDEA;  //integer message avant trame humidité
+  uint32_t imsgL = 0xFCDBFCDB;  //integer message avant trame lumière
 
   //appels des fonctions
   lumiere = lecture_lum();
   getPT();
   switch (readDHT11(DHT11, &temperature, &humidity, start_time, time_out)) {
     case 0: // Affichage
-      Serial.print(F("Humidite (%): "));
-      Serial.println(humidity, 2);
-      Serial.print(F("Temperature (^C): "));
-      Serial.println(temperature, 2);
+      //      Serial.print(F("Humidite (%): "));
+      //      Serial.println(humidity, 2);
+      //      Serial.print(F("Temperature (^C): "));
+      //      Serial.println(temperature, 2);
       break;
 
-    case 1: // Le capteur ne se réveil pas
-      Serial.println(F("Pas de reponse !"));
+    case 1: // Le capteur ne se réveille pas
+      //Serial.println(F("Pas de reponse !"));
       break;
 
-    case 2: // La trame reçu n'est pas correct
-      Serial.println(F("Pb de communication !"));
+    case 2: // La trame reçue n'est pas correcte
+      //Serial.println(F("Pb de communication !"));
       break;
   }
 
   //affichage des données
-  Serial.print(F("Luminosité (lux): "));
-  Serial.print(lumiere);
-  Serial.print("\n");
-  Serial.print("Pression atmosphérique : ");
-  Serial.print(P);
-  Serial.println("kPa");
-  Serial.print("Température ambiante : ");
+  //  Serial.print(F("Luminosité (lux): "));
+  //  Serial.print(lumiere);
+  //  Serial.print("\n");
+  //  Serial.print("Pression atmosphérique : ");
+  //  Serial.print(P);
+  //  Serial.println("kPa");
+  //  Serial.print("Température ambiante : ");
+  //  Serial.print(T);
+  //  Serial.println("C°");
+
+  //bloc d'envoi xBee des données
+  Serial.print(imsgT);
+  delay(5);
   Serial.print(T);
-  Serial.println("C°");
+  delay(5);
+  Serial.print(imsgP);
+  delay(5);
+  Serial.print(P);
+  delay(5);
+  Serial.print(imsgH);
+  delay(5);
+  Serial.print(humidity);
+  delay(5);
+  Serial.print(imsgL);
+  delay(5);
+  Serial.print(lumiere);
+  delay(5);
 
-
-  delay(1000); // Une mesure par seconde
+  //delay(1000); // Une mesure par seconde
 }
