@@ -161,8 +161,6 @@ void setup() {
   Wire.begin();        // join i2c bus
   Serial.begin(9600);  // start serial for output
   pinMode(DHT11, OUTPUT);  // Broche du capteur en entrée température/humidité
-  pinMode(8, OUTPUT);  // Broche pour sortie 5V supplémentaire
-  digitalWrite(8, HIGH); // mise au niveau haut broche sortie 5V
 
   //initialisation des variables
   parametreA0.ia0 = 0;
@@ -251,22 +249,23 @@ void loop() {
   //  Serial.println("C°");
 
   //bloc d'envoi xBee des données
-  Serial.print(imsgT);
+
+  Serial.println("Temp");
   delay(5);
-  Serial.print(T);
+  Serial.println(T);
   delay(5);
-  Serial.print(imsgP);
+  Serial.println("Press");
   delay(5);
-  Serial.print(P);
+  Serial.println(P);
   delay(5);
-  Serial.print(imsgH);
+  Serial.println("Humid");
   delay(5);
-  Serial.print(humidity);
+  Serial.println(humidity);
   delay(5);
-  Serial.print(imsgL);
+  Serial.println("Lumi");
   delay(5);
-  Serial.print(lumiere);
+  Serial.println(lumiere);
   delay(5);
 
-  //delay(1000); // Une mesure par seconde
+  delay(1000); // Une mesure par seconde
 }
